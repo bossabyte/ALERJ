@@ -2,7 +2,7 @@ import os
 import hashlib
 
 # import pytest
-from extract_files import alerj_download_file
+from alerj_modules.alerj_download_file import alerj_download_file
 from pathlib import Path
 
 
