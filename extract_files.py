@@ -2,14 +2,14 @@ from pathlib import Path
 
 import requests
 from lxml import html
-from tempfile import TemporaryDirectory
+from tempfile import mkdtemp
 
 
 DOMINIO = 'https://transparencia.alerj.rj.gov.br'
 URL_ALERJ_TRANSPARENCIA = 'https://transparencia.alerj.rj.gov.br/section/report/73'
 
 
-def alerj_extract_file(year: int, month: int) -> str:
+def alerj_download_file(year: int, month: int) -> str:
 
     dict_month = {
         1: 'janeiro', 2: 'fevereiro', 3: 'março',
@@ -19,17 +19,17 @@ def alerj_extract_file(year: int, month: int) -> str:
     }
 
     month_text = dict_month.get(month).upper()
-    temp_dir = TemporaryDirectory(prefix=f'Alerj_{year}_{month}_')
+    temp_dir = mkdtemp(prefix=f'Alerj_{year}_{month}_',)
 
     r = requests.get(URL_ALERJ_TRANSPARENCIA)
     tree = html.fromstring(r.content)
 
     link = tree.xpath(f"//div[@id='collapse-{year}']//div[contains(text(), '{month_text}')]/following-sibling::div/a")[0]
-    
+
     file_resp = requests.get(f'{DOMINIO}{link.get("href")}', allow_redirects=True)
-    
+
     file_name = Path(file_resp.url).name
-    file_path = Path(temp_dir.name, file_name)
+    file_path = Path(temp_dir, file_name)
 
     with open(file_path, mode='wb') as file:
         file.write(file_resp.content)
@@ -40,5 +40,5 @@ def alerj_extract_file(year: int, month: int) -> str:
 
 
 if __name__ == '__main__':
-    
-    alerj_extract_file(2023, 1)
+
+    alerj_download_file(2023, 1)
