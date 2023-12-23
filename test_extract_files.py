@@ -6,7 +6,7 @@ from extract_files import alerj_download_file
 from pathlib import Path
 
 
-def test_alerj_extract_file():
+def test_alerj_download_file():
 
     # test file download
 
