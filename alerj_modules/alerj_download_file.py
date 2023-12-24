@@ -24,7 +24,12 @@ def alerj_download_file(year: int, month: int) -> str:
     r = requests.get(URL_ALERJ_TRANSPARENCIA)
     tree = html.fromstring(r.content)
 
-    link = tree.xpath(f"//div[@id='collapse-{year}']//div[contains(text(), '{month_text}')]/following-sibling::div/a")[0]
+    link = tree.xpath(f"//div[@id='collapse-{year}']//div[contains(text(), '{month_text}')]/following-sibling::div/a")
+
+    if len(link) == 0:
+        return ""
+    else:
+        link = link[0] 
 
     file_resp = requests.get(f'{DOMINIO}{link.get("href")}', allow_redirects=True)
 
@@ -41,4 +46,4 @@ def alerj_download_file(year: int, month: int) -> str:
 
 if __name__ == '__main__':
 
-    alerj_download_file(2023, 1)
+    alerj_download_file(2023, 12)
