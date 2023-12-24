@@ -27,10 +27,11 @@ def alerj_pdf_to_parquet(file_path: str) -> str:
     df_complete.columns = map(column_name_cleanup, df_complete.columns)
     df_complete.columns.values[5] = 'bonificacao'
 
-    temp_dir = mkdtemp(suffix='alerj_parquet_')
+    temp_dir = mkdtemp(prefix='alerj_parquet_')
 
     file_destin = f"{Path(temp_dir, Path(file_path).stem)}.parquet"
-
+    print(file_destin)
+    print(df_complete)
     df_complete.to_parquet(file_destin, index=False)
     # df_complete.to_csv('test.csv', index=False)
 
@@ -38,5 +39,5 @@ def alerj_pdf_to_parquet(file_path: str) -> str:
 
 
 if __name__ == '__main__':
-    alerj_pdf_to_parquet('/home/coutj/Downloads/folha-de-pagamento-2023-06_v.1.pdf')
+    alerj_pdf_to_parquet('/tmp/Alerj_2016_2_gyws___y/folha-de-pagamento-2016-02.pdf')
 

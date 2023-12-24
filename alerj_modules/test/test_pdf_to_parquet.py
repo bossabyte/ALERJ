@@ -9,7 +9,7 @@ def test_alerj_pdf_to_parquet():
     
     # Test file content
 
-    pdf_path = alerj_download_file(2023, 1)
+    pdf_path = alerj_download_file(2016, 2)
     
     parquet_path = alerj_pdf_to_parquet(pdf_path)
 

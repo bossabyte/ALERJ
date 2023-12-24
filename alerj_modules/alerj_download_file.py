@@ -19,7 +19,6 @@ def alerj_download_file(year: int, month: int) -> str:
     }
 
     month_text = dict_month.get(month).upper()
-    temp_dir = mkdtemp(prefix=f'Alerj_{year}_{month}_',)
 
     r = requests.get(URL_ALERJ_TRANSPARENCIA)
     tree = html.fromstring(r.content)
@@ -33,6 +32,11 @@ def alerj_download_file(year: int, month: int) -> str:
 
     file_resp = requests.get(f'{DOMINIO}{link.get("href")}', allow_redirects=True)
 
+    if file_resp.content == "" or file_resp.status_code != 200:
+        return ""
+
+    temp_dir = mkdtemp(prefix=f'Alerj_{year}_{month}_',)
+    
     file_name = Path(file_resp.url).name
     file_path = Path(temp_dir, file_name)
 
@@ -41,9 +45,9 @@ def alerj_download_file(year: int, month: int) -> str:
 
     print(file_path)
 
-    return file_path.absolute()
+    return file_path.as_posix()
 
 
 if __name__ == '__main__':
 
-    alerj_download_file(2023, 12)
+    alerj_download_file(2016, 3)
