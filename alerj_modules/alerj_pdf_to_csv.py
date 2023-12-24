@@ -25,8 +25,6 @@ def alerj_pdf_to_text(file_path: str):
 
 
     df_complete = df_complete.query("NOME.str.len() < 120")
-
-    df_complete = df_complete.replace("-", np.NAN)
    
 
     df_complete.columns = map(column_name_cleanup, df_complete.columns)
