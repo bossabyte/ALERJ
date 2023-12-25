@@ -50,4 +50,4 @@ def alerj_download_file(year: int, month: int) -> str:
 
 if __name__ == '__main__':
 
-    alerj_download_file(2016, 3)
+    alerj_download_file(2016, 1)
