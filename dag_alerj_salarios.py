@@ -54,7 +54,7 @@ def alerj_salarios():
 
     @task
     def run_databrics():
-        opr_run_now = DatabricksRunNowOperator(
+        return DatabricksRunNowOperator(
             task_id = 'run_now',
             databricks_conn_id = 'databricks_default',
             job_id = "nanana"
