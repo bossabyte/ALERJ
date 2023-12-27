@@ -52,7 +52,6 @@ def alerj_salarios():
         shutil.rmtree(Path(parquet_path).parent)
         shutil.rmtree(Path(file).parent)
 
-    to_databricks = DatabricksNotebookOperator
     to_databricks = DatabricksRunNowOperator(
             task_id = 'to_databricks',
             databricks_conn_id = 'databricks_default',
