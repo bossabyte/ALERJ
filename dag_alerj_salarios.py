@@ -28,7 +28,7 @@ def alerj_salarios():
         years = [2023]
         months = [1]
 
-        #year_month_list = list(product(years, months))
+        year_month_list = list(product(years, months))
 
         alerj_files = []
 
