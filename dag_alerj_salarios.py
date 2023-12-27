@@ -2,7 +2,7 @@ from datetime import datetime
 
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
-#from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
 
@@ -52,12 +52,22 @@ def alerj_salarios():
         shutil.rmtree(Path(parquet_path).parent)
         shutil.rmtree(Path(file).parent)
 
+    @task
+    def run_databrics():
+        opr_run_now = DatabricksRunNowOperator(
+            task_id = 'run_now',
+            databricks_conn_id = 'databricks_default',
+            job_id = "nanana"
+        )
+
 
     download = download_files()
     to_parquet = pdf_to_parquet.expand(file=download)
-    fim = EmptyOperator(task_id='Fim')
+    #fim = EmptyOperator(task_id='Fim')
+    to_databricks = run_databrics()
 
-    download >> to_parquet >> fim
+
+    download >> to_parquet >> to_databricks
 
      
 
