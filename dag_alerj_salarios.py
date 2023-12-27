@@ -55,8 +55,10 @@ def alerj_salarios():
     to_databricks = DatabricksRunNowOperator(
             task_id = 'to_databricks',
             databricks_conn_id = 'databricks_default',
-            job_id = "nanana"
-    )
+            notebook_task={
+                'notebook_path': '/Users/bossabyte@gmail.com/notebook',
+            }
+        )
 
     download = download_files()
     to_parquet = pdf_to_parquet.expand(file=download)
