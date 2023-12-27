@@ -2,7 +2,7 @@ from datetime import datetime
 
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
-from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator, DatabricksNotebookOperator
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
 
