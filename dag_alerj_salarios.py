@@ -2,7 +2,7 @@ from datetime import datetime
 
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
-from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator, DatabricksNotebookOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
 
@@ -52,12 +52,11 @@ def alerj_salarios():
         shutil.rmtree(Path(parquet_path).parent)
         shutil.rmtree(Path(file).parent)
 
+    to_databricks = DatabricksNotebookOperator
     to_databricks = DatabricksRunNowOperator(
             task_id = 'to_databricks',
             databricks_conn_id = 'databricks_default',
-            notebook_task={
-                'notebook_path': '/Users/bossabyte@gmail.com/notebook',
-            }
+            job_id = "866773471737951"
         )
 
     download = download_files()
