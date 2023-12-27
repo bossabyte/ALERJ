@@ -18,7 +18,7 @@ def alerj_salarios():
 
     @task
     def download_files():
-        from include.alerj_modules.alerj_download_file import alerj_download_file
+        from ALERJ.alerj_modules.alerj_download_file import alerj_download_file
         from itertools import product
         import os
 
@@ -45,7 +45,7 @@ def alerj_salarios():
     @task(task_id='pdf_to_parquet', max_active_tis_per_dag=4)
     def pdf_to_parquet(file):
         import shutil
-        from include.alerj_modules.alerj_pdf_to_parquet import alerj_pdf_to_parquet
+        from ALERJ.alerj_modules.alerj_pdf_to_parquet import alerj_pdf_to_parquet
         from pathlib import Path
 
         parquet_path = alerj_pdf_to_parquet(file)
