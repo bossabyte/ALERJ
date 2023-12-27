@@ -25,10 +25,10 @@ def alerj_salarios():
         years = list(range(2016, datetime.now().year))
         months = list(range(1, 13))
 
-        # years = [2016, 2017, 2018, 2023]
-        # months = [1]
+        years = [2023]
+        months = [1]
 
-        year_month_list = list(product(years, months))
+        #year_month_list = list(product(years, months))
 
         alerj_files = []
 
@@ -52,23 +52,17 @@ def alerj_salarios():
         shutil.rmtree(Path(parquet_path).parent)
         shutil.rmtree(Path(file).parent)
 
-    @task
-    def run_databrics():
-        return DatabricksRunNowOperator(
-            task_id = 'run_now',
+    to_databricks = DatabricksRunNowOperator(
+            task_id = 'to_databricks',
             databricks_conn_id = 'databricks_default',
             job_id = "nanana"
-        )
-
+    )
 
     download = download_files()
     to_parquet = pdf_to_parquet.expand(file=download)
     #fim = EmptyOperator(task_id='Fim')
-    to_databricks = run_databrics()
-
 
     download >> to_parquet >> to_databricks
 
-     
-
+    
 alerj_salarios()
