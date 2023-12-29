@@ -3,6 +3,8 @@ from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
+#from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
+from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
 
@@ -49,9 +51,14 @@ def alerj_salarios():
         from pathlib import Path
 
         parquet_path = alerj_pdf_to_parquet(file)
-        shutil.rmtree(Path(parquet_path).parent)
         shutil.rmtree(Path(file).parent)
 
+        return parquet_path
+
+    @task 
+    def printnanana(a):
+        print(a)
+    
     to_databricks = DatabricksRunNowOperator(
             task_id = 'to_databricks',
             databricks_conn_id = 'databricks_default',
@@ -60,9 +67,19 @@ def alerj_salarios():
 
     download = download_files()
     to_parquet = pdf_to_parquet.expand(file=download)
-    #fim = EmptyOperator(task_id='Fim')
+    task_nanana = printnanana(to_parquet)
+    fim = EmptyOperator(task_id='Fim')
 
-    download >> to_parquet >> to_databricks
+
+    upload_to_gcs = LocalFilesystemToGCSOperator(
+        task_id=f'upload_to_gcs',
+        src=to_parquet,
+        dst="bossabyte/raw",
+        bucket="bossabyte",
+        gcp_conn_id="gcp_conn",
+    )
+
+    download >> to_parquet >> to_databricks >> task_nanana >> fim
 
     
 alerj_salarios()
