@@ -28,7 +28,7 @@ def alerj_salarios():
         months = list(range(1, 13))
 
         years = [2023]
-        months = [1]
+        months = [1,2]
 
         year_month_list = list(product(years, months))
 
@@ -56,30 +56,32 @@ def alerj_salarios():
         return parquet_path
 
     @task 
-    def printnanana(a):
-        print(a)
-    
-    to_databricks = DatabricksRunNowOperator(
-            task_id = 'to_databricks',
-            databricks_conn_id = 'databricks_default',
-            job_id = "866773471737951"
+    def upload_to_datalake(filepath,**kwargs):
+        from pathlib import Path
+
+        upload_to_gcs = LocalFilesystemToGCSOperator(
+            task_id=f'upload_to_gcs',
+            src=filepath,
+            dst=f"raw/{Path(filepath).name}",
+            bucket="bossabyte",
+            gcp_conn_id="gcp_conn",
         )
+
+        upload_to_gcs.execute(context=kwargs)
+
+    # to_databricks = DatabricksRunNowOperator(
+    #         task_id = 'to_databricks',
+    #         databricks_conn_id = 'databricks_default',
+    #         job_id = "866773471737951"
+    # )
 
     download = download_files()
     to_parquet = pdf_to_parquet.expand(file=download)
-    task_nanana = printnanana(to_parquet)
+    upload_to_gcs = upload_to_datalake.expand(filepath=to_parquet)
     fim = EmptyOperator(task_id='Fim')
 
 
-    upload_to_gcs = LocalFilesystemToGCSOperator(
-        task_id=f'upload_to_gcs',
-        src=to_parquet,
-        dst="bossabyte/raw",
-        bucket="bossabyte",
-        gcp_conn_id="gcp_conn",
-    )
-
-    download >> to_parquet >> to_databricks >> task_nanana >> fim
+    download >> to_parquet >> upload_to_gcs >> fim
 
     
 alerj_salarios()
