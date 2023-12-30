@@ -18,7 +18,7 @@ def number_cleanup(number):
     return number.replace(".", "").replace(",", ".")
 
 
-def alerj_pdf_to_parquet(file_path: str) -> str:
+def alerj_pdf_to_parquet(file_path: str, file_name: str) -> str:
 
     print('pdf file:', file_path)
 
@@ -48,7 +48,7 @@ def alerj_pdf_to_parquet(file_path: str) -> str:
 
     temp_dir = mkdtemp(prefix='alerj_parquet_')
 
-    file_destin = f"{Path(temp_dir, Path(file_path).stem)}.parquet"
+    file_destin = f"{Path(temp_dir, file_name)}.parquet"
     print('Parquet:', file_destin)
  
     df_complete.to_parquet(file_destin, index=False)

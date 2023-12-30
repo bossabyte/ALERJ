@@ -3,7 +3,6 @@ from datetime import datetime
 from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
-#from airflow.contrib.operators.gcs_to_bq import GoogleCloudStorageToBigQueryOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
@@ -18,11 +17,11 @@ from airflow.models import Variable
 )
 def alerj_salarios():
 
-    @task
-    def download_files():
+
+    @task(task_id='download_files')
+    def download_files() -> list[tuple[str,str,str]]:
         from ALERJ.alerj_modules.alerj_download_file import alerj_download_file
         from itertools import product
-        import os
 
         years = list(range(2016, datetime.now().year))
         months = list(range(1, 13))
@@ -38,50 +37,50 @@ def alerj_salarios():
             file = alerj_download_file(year, month)
             
             if file != "":
-                alerj_files.append(file)
-            # print(file)
-            # os.remove(file)
+                alerj_files.append((year, month, file))
 
         return alerj_files
     
-    @task(task_id='pdf_to_parquet', max_active_tis_per_dag=4)
+
+    @task(task_id='pdf_to_parquet', max_active_tis_per_dag=3)
     def pdf_to_parquet(file):
-        import shutil
+        from shutil import rmtree
         from ALERJ.alerj_modules.alerj_pdf_to_parquet import alerj_pdf_to_parquet
         from pathlib import Path
 
-        parquet_path = alerj_pdf_to_parquet(file)
-        shutil.rmtree(Path(file).parent)
+        parquet_path = alerj_pdf_to_parquet(file[2], f"folha_{file[0]}_{file[1]}")
+        rmtree(Path(file[2]).parent)
 
-        return parquet_path
+        return {
+                "src": parquet_path, 
+                "dst": f"raw/{file[0]}/"
+        }
 
-    @task 
-    def upload_to_datalake(filepath,**kwargs):
+
+    @task(task_id='cleanup')
+    def cleanup(files):
+        from shutil import rmtree
         from pathlib import Path
 
-        upload_to_gcs = LocalFilesystemToGCSOperator(
+        for file in files:
+            rmtree(Path(file["src"]).parent)
+
+
+    raw_files = download_files()
+    parquet_files = pdf_to_parquet.expand(file=raw_files)
+
+    upload_to_gcs = LocalFilesystemToGCSOperator.partial(
             task_id=f'upload_to_gcs',
-            src=filepath,
-            dst=f"raw/{Path(filepath).name}",
             bucket="bossabyte",
             gcp_conn_id="gcp_conn",
-        )
+            max_active_tis_per_dag=5
+        ).expand_kwargs(parquet_files)
 
-        upload_to_gcs.execute(context=kwargs)
+    clean = cleanup(parquet_files)
 
-    # to_databricks = DatabricksRunNowOperator(
-    #         task_id = 'to_databricks',
-    #         databricks_conn_id = 'databricks_default',
-    #         job_id = "866773471737951"
-    # )
+    fim = EmptyOperator(task_id='end')
 
-    download = download_files()
-    to_parquet = pdf_to_parquet.expand(file=download)
-    upload_to_gcs = upload_to_datalake.expand(filepath=to_parquet)
-    fim = EmptyOperator(task_id='Fim')
-
-
-    download >> to_parquet >> upload_to_gcs >> fim
+    raw_files >> parquet_files >> upload_to_gcs >> clean >> fim
 
     
 alerj_salarios()
