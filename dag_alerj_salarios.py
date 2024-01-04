@@ -26,8 +26,8 @@ def alerj_salarios():
         years = list(range(2016, datetime.now().year))
         months = list(range(1, 13))
 
-        years = [2023]
-        months = [1,2]
+        # years = [2016]
+        # months = [1,2]
 
         year_month_list = list(product(years, months))
 
@@ -75,12 +75,20 @@ def alerj_salarios():
             gcp_conn_id="gcp_conn",
             max_active_tis_per_dag=5
         ).expand_kwargs(parquet_files)
+    
+    
+    run_databricks = DatabricksRunNowOperator.partial(
+            task_id="Transform",
+            databricks_conn_id="databricks",
+            job_id=Variable.get('databricks_jobid'),
+            max_active_tis_per_dagrun=2).expand_kwargs([{'notebook_params': {'file_name': "gs://bossabyte/raw/2023/folha_2023_2.parquet"}}])
+
 
     clean = cleanup(parquet_files)
 
     fim = EmptyOperator(task_id='end')
 
-    raw_files >> parquet_files >> upload_to_gcs >> clean >> fim
+    raw_files >> parquet_files >> upload_to_gcs >> clean >> run_databricks >> fim
 
     
 alerj_salarios()

@@ -52,13 +52,12 @@ def alerj_pdf_to_parquet(file_path: str, file_name: str) -> str:
     print('Parquet:', file_destin)
  
     df_complete.to_parquet(file_destin, index=False)
+    print(df_complete)
     # df_complete.to_csv('test.csv', index=False)
 
     return file_destin
 
 
 if __name__ == '__main__':
-    # alerj_pdf_to_parquet('/tmp/Alerj_2016_2_gm_523dm/folha-de-pagamento-2016-02.pdf')
-    alerj_pdf_to_parquet('/tmp/Alerj_2016_1_tshl8fq1/folha-de-pagamento-2016-01.pdf')
-    # alerj_pdf_to_parquet('/home/coutj/Downloads/folha-de-pagamento-2023-06_v.1.pdf')
+    alerj_pdf_to_parquet('/tmp/Alerj_2016_1_uwwgc24w/folha-de-pagamento-2016-01.pdf', 'test')
 
