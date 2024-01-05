@@ -4,6 +4,7 @@ from airflow.decorators import dag, task
 from airflow.operators.empty import EmptyOperator
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
+from airflow.providers.google.cloud.operators.gcs import GCSListObjectsOperator
 from airflow.hooks.base import BaseHook
 from airflow.models import Variable
 
@@ -26,8 +27,8 @@ def alerj_salarios():
         years = list(range(2016, datetime.now().year))
         months = list(range(1, 13))
 
-        # years = [2016]
-        # months = [1,2]
+        years = [2016]
+        months = [1,2]
 
         year_month_list = list(product(years, months))
 
@@ -77,18 +78,53 @@ def alerj_salarios():
         ).expand_kwargs(parquet_files)
     
     
+    gcs_raw_files = GCSListObjectsOperator(
+        task_id='get_raw_files_list',
+        bucket='bossabyte',
+        prefix="raw/",
+        gcp_conn_id="gcp_conn"
+    )
+
+    gcs_trusted_files = GCSListObjectsOperator(
+        task_id='get_trusted_files',
+        bucket='bossabyte',
+        prefix="trusted/",
+        gcp_conn_id="gcp_conn"
+    )
+
+    @task(task_id='files_to_transform')
+    def files_to_transform(raw_list, trusted_list):
+        from pathlib import Path
+        print(raw_list)
+
+        raw_file_names = [f"{Path(file).parent.name}/{Path(file).name}" for file in raw_list]
+        trusted_file_names = [f"{Path(file).parents[1].name}/{Path(file).parent.name}" for file in trusted_list]
+
+        trusted_file_names = list(dict.fromkeys(trusted_file_names))
+        print(trusted_file_names)
+
+        transform_files = list(set(raw_file_names) - set(trusted_file_names))
+
+        transform_dir = [{'notebook_params': {'file_name': file }} for file in transform_files]
+
+        return transform_dir
+
+    
+    transform_list = files_to_transform(gcs_raw_files.output, gcs_trusted_files.output)
+
     run_databricks = DatabricksRunNowOperator.partial(
             task_id="Transform",
             databricks_conn_id="databricks",
             job_id=Variable.get('databricks_jobid'),
-            max_active_tis_per_dagrun=2).expand_kwargs([{'notebook_params': {'file_name': "gs://bossabyte/raw/2023/folha_2023_2.parquet"}}])
+            max_active_tis_per_dagrun=2).expand_kwargs(transform_list)
 
 
     clean = cleanup(parquet_files)
 
     fim = EmptyOperator(task_id='end')
 
-    raw_files >> parquet_files >> upload_to_gcs >> clean >> run_databricks >> fim
+    (raw_files >> parquet_files >> upload_to_gcs >> clean >> gcs_raw_files >> 
+     gcs_trusted_files >> transform_list >> run_databricks >> fim)
 
     
 alerj_salarios()
