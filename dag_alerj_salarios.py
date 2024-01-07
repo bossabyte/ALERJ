@@ -35,8 +35,8 @@ def alerj_salarios():
         years = list(range(2016, datetime.now().year))
         months = list(range(1, 13))
 
-        years = [2016]
-        months = [1,2]
+        #years = [2016]
+        #months = [1,2]
 
         year_month_list = list(product(years, months))
 
