@@ -107,7 +107,8 @@ def alerj_salarios():
         task_id='get_raw_files_list',
         bucket='bossabyte',
         prefix="raw/",
-        gcp_conn_id="gcp_conn"
+        gcp_conn_id="gcp_conn",
+        trigger_rule='all_done'
     )
 
     gcs_trusted_files = GCSListObjectsOperator(
