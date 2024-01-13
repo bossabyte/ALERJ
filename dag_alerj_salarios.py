@@ -38,7 +38,8 @@ def alerj_salarios():
         #years = [2016]
         #months = [1,2]
 
-        year_month_list = list(product(years, months)).sort()
+        year_month_list = list(product(years, months))
+        year_month_list.sort()
 
 
         files_on_bucket = []
@@ -53,10 +54,7 @@ def alerj_salarios():
                 print(file)
 
 
-
         year_month_list = list(set(year_month_list) - set(files_on_bucket))
-
-        print(year_month_list)
 
         alerj_files = []
 
