@@ -21,7 +21,7 @@ def alerj_salarios():
 
     gcs_raw_before = GCSListObjectsOperator(
         task_id='get_raw_files_before',
-        bucket='bossabyte',
+        bucket='bossa-bucket-coutj',
         prefix="raw/",
         gcp_conn_id="gcp_conn"
     )
@@ -38,7 +38,8 @@ def alerj_salarios():
         #years = [2016]
         #months = [1,2]
 
-        year_month_list = list(product(years, months))
+        year_month_list = list(product(years, months)).sort()
+
 
         files_on_bucket = []
         for file in raw_list:
@@ -97,7 +98,7 @@ def alerj_salarios():
 
     upload_to_gcs = LocalFilesystemToGCSOperator.partial(
             task_id=f'upload_to_gcs',
-            bucket="bossabyte",
+            bucket="bossa-bucket-coutj",
             gcp_conn_id="gcp_conn",
             max_active_tis_per_dag=5
         ).expand_kwargs(parquet_files)
@@ -105,7 +106,7 @@ def alerj_salarios():
     
     gcs_raw_files = GCSListObjectsOperator(
         task_id='get_raw_files_list',
-        bucket='bossabyte',
+        bucket='bossa-bucket-coutj',
         prefix="raw/",
         gcp_conn_id="gcp_conn",
         trigger_rule='all_done'
@@ -113,7 +114,7 @@ def alerj_salarios():
 
     gcs_trusted_files = GCSListObjectsOperator(
         task_id='get_trusted_files',
-        bucket='bossabyte',
+        bucket='bossa-bucket-coutj',
         prefix="trusted/",
         gcp_conn_id="gcp_conn"
         # match_glob="trusted/**/*.parquet/*"
@@ -139,8 +140,8 @@ def alerj_salarios():
     run_databricks = DatabricksRunNowOperator.partial(
             task_id="Transform",
             databricks_conn_id="databricks",
-            job_id=Variable.get('databricks_jobid'),
-            max_active_tis_per_dagrun=2).expand_kwargs(transform_list)
+            job_id=Variable.get('databricks_jobid_alerj'),
+            max_active_tis_per_dagrun=3).expand_kwargs(transform_list)
 
 
     clean = cleanup(parquet_files)

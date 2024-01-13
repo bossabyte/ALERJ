@@ -14,10 +14,6 @@ def column_name_cleanup(col_name: str):
             )
 
 
-def number_cleanup(number):
-    return number.replace(".", "").replace(",", ".")
-
-
 def alerj_pdf_to_parquet(file_path: str, file_name: str) -> str:
 
     print('pdf file:', file_path)
@@ -42,7 +38,7 @@ def alerj_pdf_to_parquet(file_path: str, file_name: str) -> str:
     columns = df_complete.iloc[0,:].to_list()
     columns = list(map(column_name_cleanup, columns))
     df_complete.columns = columns
-    df_complete.columns.values[5] = 'bonificacao'
+    #df_complete.columns.values[5] = 'bonificacao'
 
     df_complete.drop(index=0, inplace=True) # drop first row with col names
 
